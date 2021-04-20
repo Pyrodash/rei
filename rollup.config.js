@@ -4,6 +4,7 @@ const commonjs = require('@rollup/plugin-commonjs')
 const alias = require('@rollup/plugin-alias')
 const externals = require('rollup-plugin-node-externals')
 const multiInput = require('rollup-plugin-multi-input').default
+const json = require('@rollup/plugin-json')
 
 const root = join(__dirname, 'src')
 
@@ -21,16 +22,22 @@ module.exports = {
             exports: 'auto',
         },
     ],
+    external: [
+        'electron',
+        'electron-store',
+    ],
     plugins: [
         multiInput(),
         nodeResolve({ preferBuiltins: true }),
-        commonjs(),
+        commonjs({ transformMixedEsModules:true }),
         alias({
             entries: [
                 { find: '@', replacement: root },
                 { find: '~', replacement: root },
+                { find: '@app', replacement: join(__dirname, 'app', 'src') },
             ],
         }),
         externals(),
+        json(),
     ],
 }

@@ -1,5 +1,6 @@
 const isDev = require('electron-is-dev')
-const { join } = require('path')
+const { join, resolve } = require('path')
+const { exec } = require('child_process')
 
 const DEV_SERVER_URL = process.env.DEV_SERVER_URL
 
@@ -16,4 +17,26 @@ exports.resolveURL = function(...args) {
 
 exports.resolvePage = function(...args) {
     return exports.resolveURL('#', ...args)
+}
+
+exports.exec = function(...args) {
+    return new Promise((resolve, reject) => {
+        exec(...args, (err, stdout) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(stdout)
+            }
+        })
+    })
+}
+
+exports.constructObjectFromArray = function(arr, key = 'name', val = 'value') {
+    const obj = {}
+
+    for (const el of arr) {
+        obj[el[key]] = el[val]
+    }
+
+    return obj
 }

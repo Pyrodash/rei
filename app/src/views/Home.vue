@@ -1,3 +1,3 @@
 <template>
-    ttest
+    home
 </template>

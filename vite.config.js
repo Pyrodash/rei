@@ -12,10 +12,11 @@ const root = join(__dirname, 'app')
 module.exports = defineConfig({ 
     root,
     resolve: {
-        alias: {
-            '@': root,
-            '~': root,
-        },
+        alias: [
+            { find: '@', replacement: root },
+            { find: '~', replacement: root },
+            { find: '@main', replacement: join(__dirname, 'src') },
+        ],
     },
     base: './',
     build: {
@@ -37,8 +38,12 @@ module.exports = defineConfig({
     ],
     optimizeDeps: {
         exclude: [
+            'electron',
             'electron-is-dev',
             'electron-store',
+        ],
+        include: [
+            'imagesloaded',
         ],
     },
 })

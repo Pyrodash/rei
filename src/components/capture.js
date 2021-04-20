@@ -1,84 +1,66 @@
-const { app, screen, ipcMain, BrowserWindow, globalShortcut } = require('electron')
-const { writeFile } = require('fs').promises
+const { app } = require('electron')
+const { readFile } = require('fs').promises
 const { join } = require('path')
 
 const Component = require('./component')
-const { resolvePage, resolveMainFile } = require('../utils')
+const { exec } = require('../utils')
 
 module.exports = class Capture extends Component {
     constructor(parent) {
-        super(parent)
-        
-        this.registerEvents()
+        super(parent)        
     }
 
-    registerEvents() {
-        app.once('ready', () => {
-            globalShortcut.register('CommandOrControl+Option+4', () => {
-                if (BrowserWindow.getAllWindows().length === 0) {
-                    this.createWindow()
-                }
-            })
-        })
+    async capture({
+        path,
+        interactive = false,
+        sounds = false,
+        cropper = false,
+        rect,
+    }) {
+        const isTemp = !path
+        const options = []
+        const date = new Date()
 
-        app.on('window-all-closed', (e) => {
-            e.preventDefault()
-        })
-
-        ipcMain.on('capture', () => {
-            //this.window.setOpacity(0)
-        })
-
-        ipcMain.on('captured', async (e, data) => {
-            //this.window.close()
-        })
-
-        app.dock.hide()
-    }
-
-    createWindow() {
-        if (this.window) {
-            this.window.close()
+        if (interactive) {
+            options.push('-i')
         }
 
-        const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
-        const { x, y, width, height } = display.bounds
+        if (!sounds) {
+            options.push('-x')
+        }
+
+        if (rect) {
+            options.push(`-R ${rect.x},${rect.y},${rect.width},${rect.height}`)
+        }
+
+        if (isTemp) {
+            path = join(app.getPath('temp'), app.getName(), `rei-${date.getTime()}.png`)
+        }
+
+        options.push(path)
+
+        await exec(`/usr/sbin/screencapture ${options.join(' ')}`)
         
-        const win = this.window = new BrowserWindow({
-            x,
-            y,
-            width,
-            height,
-            transparent: true,
-            frame: false,
-            show: false,
-            skipTaskbar: true,
-            enableLargerThanScreen: true,
-            resizable: false,
-            movable: false,
-            fullscreenable: false,
-            minimizable: false,
-            maximizable: false,
-            hasShadow: false,
-            roundedCorners: false,
-            //focusable: false,
-            acceptFirstMouse: true,
-            webPreferences: {
-                preload: resolveMainFile('preload.js')
-            },
-        })
+        let body
 
-        win.once('close', () => {
-            if (this.window === win) {
-                this.window = null
-            }
-        })
+        try {
+            body = await readFile(path)
+        } catch (err) {
+            console.warn(err)
+            return null
+        }
+        
+        let payload = {
+            body,
+            path,
+            date,
+            isTemp,
+        }
 
-        win.showInactive()
-        win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-        win.setAlwaysOnTop(true, 'screen-saver', 1)
-        //win.setIgnoreMouseEvents(true, { forward: true }) // for dev
+        if (cropper) {
+            payload = await this.parent.components.cropper.run(payload)
+        }
 
-        win.loadURL(resolvePage('capture'))
+        return payload
     }
 }

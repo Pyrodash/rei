@@ -1,6 +1,10 @@
 const { contextBridge, ipcRenderer, desktopCapturer } = require('electron')
 const { join } = require('path')
 const { writeFile } = require('fs').promises
+const Store = require('electron-store')
+const { createStorage } = require('./storage')
+
+const store = new Store()
 const dpr = window.devicePixelRatio || 1
 
 function getThumbnailSize() {
@@ -32,6 +36,8 @@ async function capture(data) {
     } else if (data.type === 'video') {}
 }
 
+contextBridge.exposeInMainWorld('storage', createStorage(store))
+
 contextBridge.exposeInMainWorld('api', {
     async capture(data) {
         ipcRenderer.send('capture')
@@ -42,5 +48,27 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('captured', data)
 
         return data
-    }
+    },
+    showPathDialog() {
+        return ipcRenderer.invoke('show-path-dialog')
+    },
+    updateState(key, newState, oldState) {
+        return ipcRenderer.send('update-state', key, newState)
+    },
+    getImage() {
+        return ipcRenderer.invoke('get-image')
+    },
+    onSetImage(handler) {
+        ipcRenderer.on('set-image', handler)
+
+        return () => ipcRenderer.off('set-image', handler)
+    },
+    onAppendHistory(handler) {
+        ipcRenderer.on('append-history', handler)
+
+        return () => ipcRenderer.off('append-history', handler)
+    },
+    cropperReady() {
+        ipcRenderer.send('cropper-ready')
+    },
 })

@@ -1,23 +1,35 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
 import Home from './views/Home.vue'
-import Capture from './views/Capture.vue'
+import Library from './views/Library.vue'
+import Settings from './views/Settings.vue'
+import Cropper from './views/Cropper.vue'
 
 const routes = [
     {
         path: '/',
         name: 'Home',
-        component: Home,
+        //component: Home,
+        redirect: '/library',
     },
     {
-        path: '/capture',
-        name: 'Capture',
-        component: Capture,
+        path: '/library',
+        name: 'Library',
+        component: Library,
+    },
+    {
+        path: '/settings',
+        name: 'Settings',
+        component: Settings
+    },
+    {
+        path: '/cropper',
+        name: 'Cropper',
+        component: Cropper,
+        meta: { hideSidebar: true },
     },
 ]
 
-const router = createRouter({
+export const router = createRouter({
     history: createWebHashHistory(),
     routes,
 })
-
-export default router

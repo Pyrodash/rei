@@ -35,6 +35,10 @@ async function run() {
         } else if (evt.code === 'ERROR') {
             console.log(evt.error)
         }
+
+        if (evt.result) {
+            evt.result.close()
+        }
     })
 }
 

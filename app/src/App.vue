@@ -1,6 +1,25 @@
 <template>
-    <router-view />
+    <Sidebar v-if="!this.$route.meta.hideSidebar" />
+    <router-view id="view" />
 </template>
+
+<script>
+import Sidebar from './components/Sidebar.vue'
+
+export default {
+    components: {
+        Sidebar,
+    },
+    mounted() {
+        this.unsubscribe = window.api.onAppendHistory((e, entry) => {
+            this.$store.commit('appendHistory', entry)
+        })
+    },
+    unmounted() {
+        this.unsubscribe()
+    },
+}
+</script>
 
 <style>
 @import url('https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700,800&display=swap');
@@ -19,6 +38,33 @@ html, body {
     box-sizing: border-box;
 }
 
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+input, button, textarea, :focus {
+    outline: none;
+}
+
+a:not([draggable=true]), img:not([draggable=true]) {
+    -webkit-user-drag: none;
+    user-drag: none; /* Technically not supported in Electron yet */
+}
+a[href^="http://"],
+a[href^="https://"],
+a[href^="ftp://"] {
+    -webkit-user-drag: auto;
+    user-drag: auto; /* Technically not supported in Electron yet */
+}
+
 body {
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, 'Source Sans Pro',
@@ -29,5 +75,15 @@ body {
     -webkit-text-size-adjust: 100%;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+#view {
+    overflow-y: auto;
 }
 </style>
