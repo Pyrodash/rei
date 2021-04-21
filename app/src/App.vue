@@ -1,15 +1,68 @@
 <template>
-    <Sidebar v-if="!this.$route.meta.hideSidebar" />
-    <router-view id="view" />
+    <div
+        id="appBody"
+        @keydown="onKeyDown"
+        @dragenter="onDrag"
+        @dragover="onDrag"
+        @dragleave="onDragLeave"
+        @drop="onDrop"
+    >
+        <div v-if="dragging" id="draggingMessage" class="draggingContainer">
+            Drop to upload file
+        </div>
+        <FileUploader v-if="showUploader" :files="files" @close="hideUploader" />
+        <Sidebar v-if="!this.$route.meta.hideSidebar" />
+        <router-view id="view" />
+    </div>
 </template>
 
 <script>
 import deepmerge from 'deepmerge'
 import Sidebar from './components/Sidebar.vue'
+import FileUploader from './components/FileUploader.vue'
 
 export default {
     components: {
         Sidebar,
+        FileUploader,
+    },
+    data() {
+        return {
+            dragging: false,
+            files: null,
+            showUploader: false,
+        }
+    },
+    methods: {
+        onKeyDown(e) {
+            if (e.key === 'Escape' && this.showUploader) {
+                this.hideUploader()
+            }
+        },
+        onDrag(e) {
+            e.preventDefault()
+
+            this.dragging = true
+        },
+        onDragLeave(e) {
+            if (e.target.id === 'draggingMessage') {
+                this.dragging = false
+            }
+        },
+        onDrop(e) {
+            this.dragging = false
+            const { files } = e.dataTransfer
+
+            if (files.length > 0) {
+                this.files = files
+                this.showUploader = true
+                this.$el.focus()
+            }
+        },
+        hideUploader() {
+            this.showUploader = false
+            this.files = null
+        },
     },
     mounted() {
         this.unsubscribe = window.api.onSetState((e, state) => {
@@ -86,7 +139,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-#app {
+#app, #appBody {
     width: 100%;
     height: 100%;
     display: flex;
@@ -94,5 +147,22 @@ body {
 
 #view {
     overflow-y: auto;
+}
+
+.draggingContainer {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#draggingMessage {
+    font-size: 1.5em;
 }
 </style>

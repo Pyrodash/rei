@@ -58,6 +58,9 @@ contextBridge.exposeInMainWorld('api', {
     getImage() {
         return ipcRenderer.invoke('get-image')
     },
+    upload(files, uploaderId) {
+        return ipcRenderer.send('upload', files, uploaderId)
+    },
     onSetImage(handler) {
         ipcRenderer.on('set-image', handler)
 
