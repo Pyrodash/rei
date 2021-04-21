@@ -63,10 +63,10 @@ contextBridge.exposeInMainWorld('api', {
 
         return () => ipcRenderer.off('set-image', handler)
     },
-    onAppendHistory(handler) {
-        ipcRenderer.on('append-history', handler)
+    onSetState(handler) {
+        ipcRenderer.on('set-state', handler)
 
-        return () => ipcRenderer.off('append-history', handler)
+        return () => ipcRenderer.off('set-state', handler)
     },
     cropperReady() {
         ipcRenderer.send('cropper-ready')

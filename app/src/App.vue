@@ -4,6 +4,7 @@
 </template>
 
 <script>
+import deepmerge from 'deepmerge'
 import Sidebar from './components/Sidebar.vue'
 
 export default {
@@ -11,8 +12,16 @@ export default {
         Sidebar,
     },
     mounted() {
-        this.unsubscribe = window.api.onAppendHistory((e, entry) => {
-            this.$store.commit('appendHistory', entry)
+        this.unsubscribe = window.api.onSetState((e, state) => {
+            this.$store.replaceState(
+                deepmerge(
+                    this.$store.state,
+                    state || {},
+                    {
+                        arrayMerge: (destArray, sourceArray, options) => sourceArray
+                    },
+                )
+            )
         })
     },
     unmounted() {

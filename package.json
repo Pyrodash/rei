@@ -12,6 +12,7 @@
     "rollup": "rollup -c"
   },
   "dependencies": {
+    "deepmerge": "^4.2.2",
     "electron-is-dev": "^2.0.0",
     "electron-store": "^7.0.3",
     "form-data": "^4.0.0",

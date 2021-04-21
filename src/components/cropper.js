@@ -10,7 +10,7 @@ module.exports = class Cropper extends Component {
     }
 
     get url() {
-        return `file:///${this.payload.path}`
+        return `file://${this.payload.path}`
     }
 
     registerEvents() {    

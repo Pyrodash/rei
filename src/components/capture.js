@@ -54,6 +54,7 @@ module.exports = class Capture extends Component {
             body,
             path,
             date,
+            ext: '.png',
             isTemp,
         }
 

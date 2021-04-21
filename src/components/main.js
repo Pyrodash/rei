@@ -11,6 +11,9 @@ module.exports = class Main extends Component {
     }
 
     registerEvents() {
+        this.store.onDidChange('vuex.history', this.syncState.bind(this))
+        this.store.onDidChange('vuex.increment', this.syncState.bind(this))
+
         app.on('window-all-closed', (e) => {
             e.preventDefault()
         })
@@ -25,6 +28,10 @@ module.exports = class Main extends Component {
             this.createWindow()
         })
 
+        ipcMain.on('update-state', (e) => {
+            this.syncState(e.sender)
+        })
+
         ipcMain.handle('show-path-dialog', async () => {
             const res = await dialog.showOpenDialog({
                 properties: ['openDirectory', 'createDirectory']
@@ -32,6 +39,16 @@ module.exports = class Main extends Component {
 
             return res.filePaths[0]
         })
+    }
+
+    syncState(ignored) {
+        const state = this.store.get('vuex')
+
+        for (const i in this.parent.components) {
+            const component = this.parent.components[i]
+
+            component.send('set-state', [state], ignored)
+        }
     }
 
     createWindow() {

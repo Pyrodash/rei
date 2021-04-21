@@ -68,7 +68,7 @@ module.exports = class Shortcut extends Component {
 
             if (action && typeof action.execute === 'function') {
                 const lastPayload = payload
-                payload = await action.execute(payload, actionObj.options, this.parent)
+                payload = await action.execute(payload, actionObj.options, shortcut, this.parent)
 
                 if (!payload) {
                     // probably cancelled
@@ -80,14 +80,16 @@ module.exports = class Shortcut extends Component {
             }
         }
 
-        if (payload.isTemp) {
-            await unlink(payload.path)
+        if (payload) {
+            if (payload.isTemp) {
+                await unlink(payload.path)
 
-            payload.path = null
-            payload.isTemp = false
+                payload.path = null
+                payload.isTemp = false
+            }
+
+            this.appendHistory(payload)
         }
-
-        this.appendHistory(payload)
     }
 
     appendHistory(payload) {
@@ -97,22 +99,16 @@ module.exports = class Shortcut extends Component {
             return
         }
 
-        const src = `file:///${payload.path}`
+        const src = `file://${payload.path}`
         const entry = {
             src,
             time: payload.date.getTime(),
         }
 
-        const mainComponent = this.parent.components.main
+        const history = this.store.get('vuex.history', [])
 
-        if (mainComponent.window) {
-            mainComponent.window.webContents.send('append-history', entry)
-        } else {
-            const history = this.store.get('history', [])
+        history.push(entry)
 
-            history.push(entry)
-
-            this.store.set('history', history)
-        }
+        this.store.set('vuex.history', history)
     }
 }

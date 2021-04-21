@@ -6,6 +6,9 @@ let got
 let FormData
 let render
 
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 try {
     const electron = require('electron')
     const fs = require('fs')
@@ -35,19 +38,58 @@ try {
     console.warn(err)
 }
 
-const getDestination = (payload, destination) => {
-    if (!extname(destination)) {
-        destination = join(destination, basename(payload.path))
+const getDestination = (payload, destination, shortcut, parent) => {
+    const increments = parent.store.get('vuex.increment.shortcuts')
+    const id = (increments[shortcut.id] || 0) + 1
+
+    increments[shortcut.id] = id
+    parent.store.set('vuex.increment.shortcuts', increments)
+    
+    const day = payload.date.getDate()
+    const dayStr = day.toString()
+    const dayName = dayNames[payload.date.getDay()]
+
+    const month = payload.date.getMonth() + 1
+    const monthStr = month.toString()
+    const monthName = monthNames[month - 1]
+
+    const year = payload.date.getFullYear()
+    const yearStr = year.toString()
+
+    const template = {
+        i: id.toString(),
+        d: dayStr,
+        dd: dayStr.padStart('2', '0'),
+        m: monthStr,
+        mm: monthStr.padStart('2', '0'),
+        y: yearStr,
+        yy: yearStr,
+        month: monthName,
+        mon: monthName.substr(0, 3),
+        day: dayName,
+        shortDay: dayName.substr(0, 3),
     }
 
-    return destination
+    let targetPath = render(destination, template)
+
+    if (targetPath !== destination) {
+        if (!extname(targetPath)) {
+            targetPath += payload.ext
+        }
+    }
+
+    if (!extname(targetPath)) {
+        targetPath = join(targetPath, basename(payload.path))
+    }
+
+    return targetPath
 }
 
 export const actions = [
     {
         id: 1,
         name: 'Capture Entire Screen',
-        execute(payload, options, parent) {
+        execute(payload, options, shortcut, parent) {
             const captureComponent = parent.components.capture
 
             return captureComponent.capture({
@@ -59,7 +101,7 @@ export const actions = [
     {
         id: 2,
         name: 'Capture a Region',
-        execute(payload, options, parent) {
+        execute(payload, options, shortcut, parent) {
             const captureComponent = parent.components.capture
 
             return captureComponent.capture({
@@ -79,9 +121,9 @@ export const actions = [
                 type: 'path',
             },
         ],
-        async execute(payload, options, parent) {
+        async execute(payload, options, shortcut, parent) {
             const { destination } = options
-            const path = getDestination(payload, destination)
+            const path = getDestination(payload, destination, shortcut, parent)
             
             await writeFile(path, payload.body)
 
@@ -100,7 +142,7 @@ export const actions = [
     {
         id: 4,
         name: 'Copy to Clipboard',
-        execute(payload, options, parent) {
+        execute(payload, options, shortcut, parent) {
             const image = nativeImage.createFromBuffer(payload.body)
             clipboard.writeImage(image)
             
@@ -118,7 +160,7 @@ export const actions = [
                 type: 'uploader',
             }
         ],
-        async execute(payload, options, parent) {
+        async execute(payload, options, shortcut, parent) {
             const uploaderId = options.uploader
             const uploader = parent.store.get('vuex.uploaders', []).find(
                 (uploader) =>
@@ -204,7 +246,6 @@ export const actions = [
                 })
 
                 notif.on('click', () => {
-                    console.log('test')
                     shell.openExternal(payload.url)
                 })
 

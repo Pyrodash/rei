@@ -26,6 +26,7 @@ export function createStore({ storage }) {
                     query: 0,
                     header: 0,
                     body: 0,
+                    shortcuts: {},
                 },
                 shortcuts: [],
                 uploaders: [],
