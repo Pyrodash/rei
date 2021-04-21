@@ -40,3 +40,5 @@ exports.constructObjectFromArray = function(arr, key = 'name', val = 'value') {
 
     return obj
 }
+
+exports.ucfirst = (s) => s.charAt(0).toUpperCase() + s.slice(1)

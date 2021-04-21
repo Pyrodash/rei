@@ -1,9 +1,6 @@
 let nativeImage, clipboard, shell, Notification
 let writeFile, unlink, createReadStream
 let extname, basename, join
-let constructObjectFromArray
-let got
-let FormData
 let render
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -13,8 +10,6 @@ try {
     const electron = require('electron')
     const fs = require('fs')
     const path = require('path')
-    got = require('got')
-    FormData = require('form-data')
     const mustache = require('mustache')
 
     nativeImage = electron.nativeImage
@@ -29,8 +24,6 @@ try {
     extname = path.extname
     basename = path.basename
     join = path.join
-
-    constructObjectFromArray = require('./utils').constructObjectFromArray
 
     mustache.escape = (text) => text
     render = mustache.render
@@ -161,98 +154,13 @@ export const actions = [
             }
         ],
         async execute(payload, options, shortcut, parent) {
-            const uploaderId = options.uploader
-            const uploader = parent.store.get('vuex.uploaders', []).find(
-                (uploader) =>
-                    uploader.id === uploaderId
+            await parent.components.upload.runWithId(
+                [payload],
+                options.uploader,
+                'screenshot'
             )
 
-            const query = constructObjectFromArray(uploader.query)
-            const headers = constructObjectFromArray(uploader.headers)
-
-            let body = uploader.body.value
-            let json
-            let form
-
-            if (Array.isArray(body)) {
-                body = constructObjectFromArray(body)
-            }
-
-            switch (uploader.body.type) {
-                case 'application/json':
-                    json = body
-                    body = null
-                    break
-                case 'application/x-www-form-urlencoded':
-                    form  = body
-                    body = null
-                    break
-                case 'multipart/form-data':
-                    let formData = new FormData()
-
-                    formData.append(uploader.formName, createReadStream(payload.path))
-
-                    for (var i in body) {
-                        formData.append(i, body[i])
-                    }
-
-                    body = formData
-                    break
-                default:
-                    headers['Content-Type'] = uploader.body.type
-            }
-
-            console.log(payload.path)
-            
-            const res = await got(uploader.url, {
-                method: uploader.method,
-                searchParams: query,
-                headers,
-                body,
-                json,
-                form,
-            })
-
-            const reqUrl = res.req.url
-            const resHeaders = res.headers
-            let resJSON
-
-            try {
-                resJSON = JSON.parse(res.body)
-            } catch (err) {
-                resJSON = {}
-            }
-            
-            const args = {
-                headers: resHeaders,
-                json: resJSON,
-                url: reqUrl,
-            }
-
-            payload.url = render(uploader.responseURL || '', args)
-            payload.deletionURL = render(uploader.deletionURL || '', args)
-            payload.errorMessage = render(uploader.errorMessage || '', args)
-
-            console.log(payload)
-            
-            const uploaderName = uploader.name || uploader.url
-
-            if (payload.url) {
-                clipboard.writeText(payload.url)
-
-                const notif = new Notification({
-                    title: 'Screenshot Uploaded',
-                    body: `Your screenshot has been uploaded to ${uploaderName} and the link was the copied to the clipboard.`
-                })
-
-                notif.on('click', () => {
-                    shell.openExternal(payload.url)
-                })
-
-                notif.show()
-            }
-
-            return payload
+            return payload[0]
         },
     },
 ]

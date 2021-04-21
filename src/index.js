@@ -7,6 +7,7 @@ const MainComponent = require('./components/main')
 const CropperComponent = require('./components/cropper')
 const CaptureComponent = require('./components/capture')
 const ShortcutComponent = require('./components/shortcut')
+const UploadComponent = require('./components/upload')
 
 mkdirSync(join(app.getPath('temp'), app.getName()), { recursive: true })
 
@@ -18,6 +19,7 @@ class App {
             cropper: new CropperComponent(this),
             capture: new CaptureComponent(this),
             shortcut: new ShortcutComponent(this),
+            upload: new UploadComponent(this),
         }
     }
 }
