@@ -5,7 +5,7 @@
             v-for="uploader in uploaders"
             :value="uploader.id"
             :key="uploader.id"
-            :selected="uploader.id === this.value"
+            :selected="uploader.id === value"
         >
             {{ uploader.name || uploader.url }}
         </option>
