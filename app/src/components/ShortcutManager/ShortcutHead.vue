@@ -4,6 +4,7 @@
             :value="item.sequence.join('+')"
             v-if="isEditing(item)"
             placeholder="Press some keys"
+            :class="{ invalid: invalid }"
             @keydown="onKeyDown"
         />
         <span v-else @dblclick="toggleEditItem(item)">
@@ -16,12 +17,17 @@
 </template>
 
 <script>
+import isAccelerator from 'electron-is-accelerator'
+
 const keyMap = {
     Meta: 'Command',
 }
 
 export default {
     props: ['item', 'isEditing', 'toggleEditItem'],
+    data() {
+        return { invalid: false }
+    },
     methods: {
         onKeyDown(e) {
             e.preventDefault()
@@ -45,7 +51,15 @@ export default {
                     shortcut,
                 })
             }
+
+            this.invalid = !isAccelerator(shortcut.sequence.join('+'))
         },
     },
 }
 </script>
+
+<style scoped>
+input.invalid {
+    border-color: #DF5050;
+}
+</style>

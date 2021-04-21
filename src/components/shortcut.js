@@ -1,4 +1,5 @@
 const { app, globalShortcut, ipcMain } = require('electron')
+const isAccelerator = require('electron-is-accelerator')
 const { unlink } = require('fs')
 const assert = require('assert')
 
@@ -34,6 +35,10 @@ module.exports = class Shortcut extends Component {
             let hotkey = shortcut.sequence.join('+')
             
             if (newShortcuts[hotkey]) {
+                continue
+            }
+
+            if (!isAccelerator(hotkey)) {
                 continue
             }
 
