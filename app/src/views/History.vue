@@ -1,7 +1,7 @@
 <template>
     <div :class="{ content: true, empty: empty }">
         <div class="header">
-            Library
+            History
         </div>
         <span v-if="empty">Fill this up by taking some screenshots</span>
         <table v-else>
