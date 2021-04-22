@@ -75,9 +75,21 @@ module.exports = class Main extends Component {
         win.once('close', () => {
             if (this.window === win) {
                 this.window = null
+                
+                app.dock.hide()
             }
         })
 
         win.loadURL(resolvePage(''))
+    }
+
+    show() {
+        if (!this.window) {
+            this.createWindow()
+        } else {
+            this.window.show()
+        }
+
+        app.dock.show()
     }
 }
