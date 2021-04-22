@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer, desktopCapturer } = require('electron')
-const { join } = require('path')
+const { join, basename } = require('path')
 const { writeFile } = require('fs').promises
 const Store = require('electron-store')
 const { createStorage } = require('./storage')
@@ -74,4 +74,5 @@ contextBridge.exposeInMainWorld('api', {
     cropperReady() {
         ipcRenderer.send('cropper-ready')
     },
+    basename,
 })
