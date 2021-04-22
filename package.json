@@ -37,6 +37,6 @@
     "rollup": "^2.45.1",
     "rollup-plugin-multi-input": "^1.2.0",
     "rollup-plugin-node-externals": "^2.2.0",
-    "vite": "^2.1.5"
+    "vite": "^2.2.1"
   }
 }

@@ -42,8 +42,5 @@ module.exports = defineConfig({
             'electron-is-dev',
             'electron-store',
         ],
-        include: [
-            'imagesloaded',
-        ],
     },
 })
